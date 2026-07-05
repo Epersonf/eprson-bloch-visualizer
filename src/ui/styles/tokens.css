@@ -1,0 +1,26 @@
+:root {
+  --bg-0: #0a0a0a;
+  --bg-1: #111111;
+  --bg-2: #1a1a1a;
+  --fg-0: #e6e6e6;
+  --fg-1: #9a9a9a;
+  --fg-2: #555555;
+  --border: #2e2e2e;
+  --acc-exec: #ffd23f;
+  --acc-q0: #8f88ff;
+  --acc-q1: #35d49a;
+  --acc-q2: #ff7a4d;
+  --acc-q3: #ff6bd6;
+  --acc-q4: #4db8ff;
+  --acc-q5: #d2ff4d;
+  --acc-meas: #ff4d4d;
+  --acc-ent: #4db8ff;
+  --font: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+.qubit-color-0 { color: var(--acc-q0); }
+.qubit-color-1 { color: var(--acc-q1); }
+.qubit-color-2 { color: var(--acc-q2); }
+.qubit-color-3 { color: var(--acc-q3); }
+.qubit-color-4 { color: var(--acc-q4); }
+.qubit-color-5 { color: var(--acc-q5); }
