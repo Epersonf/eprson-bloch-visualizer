@@ -11,6 +11,21 @@ export const Editor = observer(function Editor() {
 
   useEffect(() => setLocalSource(store.source), [store.source]);
 
+  // Auto‑scroll para manter a linha atual visível
+  useEffect(() => {
+    const currentLine = store.currentLine;
+    if (currentLine == null || !taRef.current || !gutterRef.current) return;
+    const lineHeight = 20; // mesma altura definida no CSS (line-height: 20px)
+    const targetScrollTop = (currentLine - 1) * lineHeight;
+    const ta = taRef.current;
+    const maxScroll = ta.scrollHeight - ta.clientHeight;
+    const clamped = Math.max(0, Math.min(targetScrollTop, maxScroll));
+    if (Math.abs(ta.scrollTop - clamped) > 2) {
+      ta.scrollTop = clamped;
+      // a sincronização do gutter é feita pelo onScroll
+    }
+  }, [store.currentLine]);
+
   function onChange(v: string) {
     setLocalSource(v);
     clearTimeout(debounceRef.current);
@@ -18,7 +33,9 @@ export const Editor = observer(function Editor() {
   }
 
   function onScroll() {
-    if (gutterRef.current && taRef.current) gutterRef.current.scrollTop = taRef.current.scrollTop;
+    if (gutterRef.current && taRef.current) {
+      gutterRef.current.scrollTop = taRef.current.scrollTop;
+    }
   }
 
   const lines = localSource.split(/\r\n|\n/);
@@ -49,8 +66,8 @@ export const Editor = observer(function Editor() {
           linha {store.parseWarnings[0].line}: {store.parseWarnings[0].message}
         </div>
       )}
-      <div className="editor-wrap">
-        <div className="gutter" ref={gutterRef}>
+      <div className="editor-wrap" style={{ flex: 1, minHeight: 0 }}>
+        <div className="gutter" ref={gutterRef} style={{ overflow: 'hidden' }}>
           {lines.map((_, idx) => {
             const lineNo = idx + 1;
             const hasBp = store.breakpoints.has(lineNo);
@@ -75,6 +92,7 @@ export const Editor = observer(function Editor() {
         <textarea
           ref={taRef}
           className="editor-textarea"
+          style={{ overflowY: 'auto' }}
           spellCheck={false}
           value={localSource}
           onScroll={onScroll}
