@@ -15,6 +15,9 @@
   --acc-q5: #d2ff4d;
   --acc-meas: #ff4d4d;
   --acc-ent: #4db8ff;
+  --scrollbar-track: var(--bg-1);
+  --scrollbar-thumb: #3c3a4a;
+  --scrollbar-thumb-hover: #55516e;
   --font: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
 }
 
