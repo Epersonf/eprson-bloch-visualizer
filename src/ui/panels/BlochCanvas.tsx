@@ -127,10 +127,20 @@ export function BlochCanvas({ bloch, entropy, color, size = 150 }: Props) {
   }, [bloch.x, bloch.y, bloch.z]);
 
   useEffect(() => {
+    // only a static redraw (entropy ring / vector color) — never touches the animation frame
     draw(stateRef.current.displayed);
-    return () => { if (animRef.current != null) cancelAnimationFrame(animRef.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entropy, color]);
+
+  useEffect(() => {
+    // unmount-only: stop any in-flight animation so it doesn't tick after the canvas is gone.
+    // Resetting the ref to null (not just cancelling) matters because StrictMode's dev-mode
+    // mount->cleanup->mount dance runs this cleanup once even on a real mount; leaving a stale
+    // non-null id behind would permanently block the "is anything already animating?" guard above.
+    return () => {
+      if (animRef.current != null) { cancelAnimationFrame(animRef.current); animRef.current = null; }
+    };
+  }, []);
 
   function draw(vec: Vec3) {
     const canvas = canvasRef.current;
@@ -165,5 +175,12 @@ export function BlochCanvas({ bloch, entropy, color, size = 150 }: Props) {
     }
   }
 
-  return <canvas ref={canvasRef} width={size} height={size} style={{ display: 'block' }} />;
+  return (
+    <canvas
+      ref={canvasRef}
+      width={size}
+      height={size}
+      style={{ display: 'block', width: size, height: size, flexShrink: 0, alignSelf: 'center' }}
+    />
+  );
 }
