@@ -64,7 +64,7 @@ export const DebuggerPage = observer(function DebuggerPage() {
         </div>
         <div className="pane">
           <div className="qubit-cards">
-            {store.numQubits === 0 && <div className="empty-state">carregue um exemplo ou declare "qubits N"</div>}
+            {store.numQubits === 0 && <div className="empty-state">load an example or declare "qubits N"</div>}
             {Array.from({ length: store.numQubits }, (_, q) => <QubitCard key={q} qubit={q} />)}
           </div>
         </div>

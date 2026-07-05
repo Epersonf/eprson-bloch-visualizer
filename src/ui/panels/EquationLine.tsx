@@ -20,7 +20,7 @@ export const EquationLine = observer(function EquationLine({ qubit, rho }: Props
       className="equation-line"
       onClick={() => store.cycleEquationFormat(qubit)}
       onContextMenu={copyLatex}
-      title="clique para alternar formato; botão direito copia LaTeX"
+      title="click to cycle format; right-click copies LaTeX"
     >
       {eq.text}
     </div>

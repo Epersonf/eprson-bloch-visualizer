@@ -13,7 +13,7 @@ export function instructionToCirq(instr: Instruction): string | null {
     case 'reset':
       return `circuit.append(cirq.reset(q[${instr.qubit}]))`;
     case 'barrier':
-      return null; // sem equivalente; omitido na exportação
+      return null; // no equivalent; omitted from the export
     case 'cond': {
       const inner = GATE_REGISTRY[instr.inner.gate].cirq(instr.inner.qubits, instr.inner.params);
       return `circuit.append(${inner}.with_classical_controls('c${instr.bit}'))`;

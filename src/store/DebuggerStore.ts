@@ -47,7 +47,10 @@ export class DebuggerStore {
   private hydrating = false;
 
   constructor() {
-    makeAutoObservable(this, {}, { deep: false });
+    // deep observability matters here: breakpoints/history/log/equationFormats are mutated
+    // in place (.add/.delete/.push/.set) rather than reassigned, so they must be deep-observable
+    // Set/Map/Array wrappers for those mutations to notify observers.
+    makeAutoObservable(this);
   }
 
   // ---------- derived ----------
@@ -271,7 +274,7 @@ export class DebuggerStore {
     this.breakpoints.clear();
     ex.breakpoints.forEach((l) => this.breakpoints.add(l));
     this.reparseAndReset();
-    this.appendLog(`exemplo carregado: ${ex.name}`);
+    this.appendLog(`example loaded: ${ex.name}`);
   }
 
   // ---------- misc UI state ----------

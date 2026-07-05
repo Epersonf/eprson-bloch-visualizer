@@ -48,7 +48,7 @@ export const Header = observer(function Header() {
           value={store.selectedExampleId ?? ''}
           onChange={(e) => e.target.value && store.loadExample(e.target.value)}
         >
-          <option value="" disabled>escolher exemplo...</option>
+          <option value="" disabled>choose an example...</option>
           {store.examples.map((ex) => (
             <option key={ex.id} value={ex.id}>{ex.name}</option>
           ))}
@@ -62,17 +62,17 @@ export const Header = observer(function Header() {
         <button onClick={() => store.continueRun()} disabled={store.status === 'DONE' || store.status === 'IDLE'} title="Continue (F5)">RUN</button>
         <button onClick={() => store.resetRun()} title="Reset (Ctrl+R)">RESET</button>
         {store.current?.lastOutcome && (
-          <button onClick={() => store.rerollMeasurement()} title="Re-roll da última medição (r)">RE-ROLL</button>
+          <button onClick={() => store.rerollMeasurement()} title="Re-roll the last measurement (r)">RE-ROLL</button>
         )}
         <button
           onClick={() => navigator.clipboard?.writeText(programToQiskit(store.program, store.numQubits, store.numBits)).catch(() => {})}
-          title="Copiar programa Qiskit completo"
+          title="Copy the full Qiskit program"
         >
           EXPORT QISKIT
         </button>
         <button
           onClick={() => navigator.clipboard?.writeText(programToCirq(store.program, store.numQubits)).catch(() => {})}
-          title="Copiar programa Cirq completo"
+          title="Copy the full Cirq program"
         >
           EXPORT CIRQ
         </button>
@@ -80,7 +80,7 @@ export const Header = observer(function Header() {
 
       <nav>
         <Link to="/">debugger</Link>
-        <Link to="/about">sobre</Link>
+        <Link to="/about">about</Link>
       </nav>
     </header>
   );

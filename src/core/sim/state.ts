@@ -1,5 +1,5 @@
 export interface QState {
-  n: number; // número de qubits
+  n: number; // number of qubits
   re: Float64Array; // length 2^n
   im: Float64Array; // length 2^n
 }

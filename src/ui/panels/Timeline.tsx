@@ -29,7 +29,7 @@ export const Timeline = observer(function Timeline() {
   const rt = store.runtimeProgram;
   const n = store.numQubits;
 
-  if (n === 0) return <div className="empty-state">nenhum circuito carregado</div>;
+  if (n === 0) return <div className="empty-state">no circuit loaded</div>;
 
   return (
     <div className="timeline">
@@ -59,7 +59,7 @@ export const Timeline = observer(function Timeline() {
               style={{ gridColumn: colIdx + 2, gridRow: q + 1 }}
               onClick={() => store.runToLine(instr.line)}
               onContextMenu={(e) => { e.preventDefault(); store.openContextMenu(e.clientX, e.clientY, instr); }}
-              title={`linha ${instr.line}`}
+              title={`line ${instr.line}`}
             >
               {labelFor(instr)}
             </div>

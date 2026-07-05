@@ -4,7 +4,7 @@ import { useDebuggerStore } from '../../store/StoreContext';
 export const ClassicalBits = observer(function ClassicalBits() {
   const store = useDebuggerStore();
   const snap = store.current;
-  if (!snap) return <div className="empty-state">sem estado</div>;
+  if (!snap) return <div className="empty-state">no state</div>;
 
   return (
     <div className="classical-bits">
@@ -14,7 +14,7 @@ export const ClassicalBits = observer(function ClassicalBits() {
           <div className="val">{b === null ? '·' : b}</div>
         </div>
       ))}
-      {snap.bits.length === 0 && <div className="empty-state">nenhum bit clássico declarado</div>}
+      {snap.bits.length === 0 && <div className="empty-state">no classical bits declared</div>}
     </div>
   );
 });

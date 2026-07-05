@@ -47,7 +47,7 @@ describe('parser', () => {
     const result = parseProgram(src);
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.errors[0].message).toMatch(/fora do range/);
+    expect(result.errors[0].message).toMatch(/out of the declared range/);
   });
 
   it('suggests a gate name via Levenshtein distance', () => {
@@ -64,6 +64,6 @@ describe('parser', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.warnings.length).toBeGreaterThan(0);
-    expect(result.warnings[0].message).toMatch(/ainda não foi medido/);
+    expect(result.warnings[0].message).toMatch(/has not been measured yet/);
   });
 });

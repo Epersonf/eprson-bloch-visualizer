@@ -7,7 +7,7 @@ const QUBIT_COLORS = ['#8f88ff', '#35d49a', '#ff7a4d', '#ff6bd6', '#4db8ff', '#d
 export const EntGraph = observer(function EntGraph() {
   const store = useDebuggerStore();
   const snap = store.current;
-  if (!snap) return <div className="empty-state">sem estado</div>;
+  if (!snap) return <div className="empty-state">no state</div>;
   const n = store.numQubits;
   const edges = getEntanglementGraph(snap.state);
 
@@ -22,8 +22,8 @@ export const EntGraph = observer(function EntGraph() {
   return (
     <div className="pane-body">
       <div className="ent-graph-note">
-        Concurrence mede emaranhamento bipartite do par isolado; a entropia (badge ENT nos cards) mede o qubit contra todo o resto.
-        Em estados GHZ, pares podem ter C=0 mesmo com entropia individual alta — emaranhamento genuinamente multipartite, não é bug.
+        Concurrence measures the bipartite entanglement of the isolated pair; entropy (the ENT badge on the cards) measures a qubit against everything else.
+        In GHZ states, pairs can have C=0 even with high individual entropy — that's genuinely multipartite entanglement, not a bug.
       </div>
       <svg width={width} height={height}>
         {edges.map((e) => {

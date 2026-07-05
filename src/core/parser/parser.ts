@@ -26,7 +26,7 @@ class LineParser {
 function parseQubitRef(p: LineParser): number | ParseError {
   const t = p.peek();
   if (t.type !== 'IDENT' || !/^q\d+$/i.test(t.value)) {
-    return p.err(`esperado referência de qubit (ex: q0), encontrado "${t.value || 'fim de linha'}"`);
+    return p.err(`expected a qubit reference (e.g. q0), found "${t.value || 'end of line'}"`);
   }
   p.next();
   return parseInt(t.value.slice(1), 10);
@@ -35,7 +35,7 @@ function parseQubitRef(p: LineParser): number | ParseError {
 function parseBitRef(p: LineParser): number | ParseError {
   const t = p.peek();
   if (t.type !== 'IDENT' || !/^c\d+$/i.test(t.value)) {
-    return p.err(`esperado referência de bit clássico (ex: c0), encontrado "${t.value || 'fim de linha'}"`);
+    return p.err(`expected a classical bit reference (e.g. c0), found "${t.value || 'end of line'}"`);
   }
   p.next();
   return parseInt(t.value.slice(1), 10);
@@ -59,7 +59,7 @@ function parseAngle(p: LineParser): number | ParseError {
       p.next();
       const id = p.peek();
       if (id.type !== 'IDENT' || id.value.toLowerCase() !== 'pi') {
-        return p.err(`esperado "pi" após "*"`, 'sintaxe de ângulo: 3*pi/4');
+        return p.err(`expected "pi" after "*"`, 'angle syntax: 3*pi/4');
       }
       p.next();
       isPi = true;
@@ -68,13 +68,13 @@ function parseAngle(p: LineParser): number | ParseError {
     p.next();
     isPi = true;
   } else {
-    return p.err(`esperado um ângulo (número ou expressão com pi)`, '0.9, pi/2, 3*pi/4, -pi');
+    return p.err(`expected an angle (a number or a pi expression)`, '0.9, pi/2, 3*pi/4, -pi');
   }
 
   let denom = 1;
   if (p.at('SLASH')) {
     p.next();
-    if (!p.at('NUMBER')) return p.err(`esperado inteiro após "/"`);
+    if (!p.at('NUMBER')) return p.err(`expected an integer after "/"`);
     denom = parseFloat(p.next().value);
   }
 
@@ -117,14 +117,14 @@ export function parseProgram(source: string): ParseResult {
 
     const head = p.peek();
     if (head.type !== 'IDENT') {
-      errors.push(p.err(`token inesperado "${head.value}"`));
+      errors.push(p.err(`unexpected token "${head.value}"`));
       continue;
     }
     const keyword = head.value.toUpperCase();
 
     if (keyword === 'QUBITS') {
       p.next();
-      if (!p.at('NUMBER')) { errors.push(p.err('esperado número de qubits, ex: qubits 3')); continue; }
+      if (!p.at('NUMBER')) { errors.push(p.err('expected a qubit count, e.g. qubits 3')); continue; }
       numQubits = parseInt(p.next().value, 10);
       declaredQubits = true;
       instructions.push({ kind: 'decl-qubits', n: numQubits, line: lineNo });
@@ -133,7 +133,7 @@ export function parseProgram(source: string): ParseResult {
 
     if (keyword === 'BITS') {
       p.next();
-      if (!p.at('NUMBER')) { errors.push(p.err('esperado número de bits, ex: bits 2')); continue; }
+      if (!p.at('NUMBER')) { errors.push(p.err('expected a bit count, e.g. bits 2')); continue; }
       numBits = parseInt(p.next().value, 10);
       declaredBits = true;
       instructions.push({ kind: 'decl-bits', n: numBits, line: lineNo });
@@ -142,18 +142,18 @@ export function parseProgram(source: string): ParseResult {
 
     if (keyword === 'MEASURE') {
       p.next();
-      if (!p.at('LPAREN')) { errors.push(p.err('esperado "(" após MEASURE')); continue; }
+      if (!p.at('LPAREN')) { errors.push(p.err('expected "(" after MEASURE')); continue; }
       p.next();
       const qb = parseQubitRef(p);
       if (isErr(qb)) { errors.push(qb); continue; }
-      if (!p.at('ARROW')) { errors.push(p.err('esperado "->" em MEASURE(qN -> cN)')); continue; }
+      if (!p.at('ARROW')) { errors.push(p.err('expected "->" in MEASURE(qN -> cN)')); continue; }
       p.next();
       const bit = parseBitRef(p);
       if (isErr(bit)) { errors.push(bit); continue; }
-      if (!p.at('RPAREN')) { errors.push(p.err('esperado ")" ao final de MEASURE')); continue; }
+      if (!p.at('RPAREN')) { errors.push(p.err('expected ")" to close MEASURE')); continue; }
       p.next();
-      if (declaredQubits && qb >= numQubits) errors.push(p.err(`qubit q${qb} fora do range declarado (qubits ${numQubits})`));
-      if (declaredBits && bit >= numBits) errors.push(p.err(`bit c${bit} fora do range declarado (bits ${numBits})`));
+      if (declaredQubits && qb >= numQubits) errors.push(p.err(`qubit q${qb} is out of the declared range (qubits ${numQubits})`));
+      if (declaredBits && bit >= numBits) errors.push(p.err(`bit c${bit} is out of the declared range (bits ${numBits})`));
       instructions.push({ kind: 'measure', qubit: qb, bit, line: lineNo, label });
       measuredWithoutReset.add(qb);
       everMeasuredBits.add(bit);
@@ -162,13 +162,13 @@ export function parseProgram(source: string): ParseResult {
 
     if (keyword === 'RESET') {
       p.next();
-      if (!p.at('LPAREN')) { errors.push(p.err('esperado "(" após RESET')); continue; }
+      if (!p.at('LPAREN')) { errors.push(p.err('expected "(" after RESET')); continue; }
       p.next();
       const qb = parseQubitRef(p);
       if (isErr(qb)) { errors.push(qb); continue; }
-      if (!p.at('RPAREN')) { errors.push(p.err('esperado ")" ao final de RESET')); continue; }
+      if (!p.at('RPAREN')) { errors.push(p.err('expected ")" to close RESET')); continue; }
       p.next();
-      if (declaredQubits && qb >= numQubits) errors.push(p.err(`qubit q${qb} fora do range declarado (qubits ${numQubits})`));
+      if (declaredQubits && qb >= numQubits) errors.push(p.err(`qubit q${qb} is out of the declared range (qubits ${numQubits})`));
       instructions.push({ kind: 'reset', qubit: qb, line: lineNo, label });
       measuredWithoutReset.delete(qb);
       continue;
@@ -185,7 +185,7 @@ export function parseProgram(source: string): ParseResult {
           qubits.push(qb);
           if (p.at('COMMA')) p.next(); else break;
         }
-        if (!p.at('RPAREN')) { errors.push(p.err('esperado ")" ao final de BARRIER')); continue; }
+        if (!p.at('RPAREN')) { errors.push(p.err('expected ")" to close BARRIER')); continue; }
         p.next();
       }
       instructions.push({ kind: 'barrier', qubits: qubits.length ? qubits : undefined, line: lineNo, label });
@@ -194,20 +194,20 @@ export function parseProgram(source: string): ParseResult {
 
     if (keyword === 'IF') {
       p.next();
-      if (!p.at('LPAREN')) { errors.push(p.err('esperado "(" após IF')); continue; }
+      if (!p.at('LPAREN')) { errors.push(p.err('expected "(" after IF')); continue; }
       p.next();
       const bit = parseBitRef(p);
       if (isErr(bit)) { errors.push(bit); continue; }
-      if (!p.at('EQEQ')) { errors.push(p.err('esperado "==" em IF (cN == 0|1)')); continue; }
+      if (!p.at('EQEQ')) { errors.push(p.err('expected "==" in IF (cN == 0|1)')); continue; }
       p.next();
-      if (!p.at('NUMBER')) { errors.push(p.err('esperado 0 ou 1 em IF (cN == 0|1)')); continue; }
+      if (!p.at('NUMBER')) { errors.push(p.err('expected 0 or 1 in IF (cN == 0|1)')); continue; }
       const valTok = p.next();
-      if (valTok.value !== '0' && valTok.value !== '1') { errors.push(p.err('valor de IF deve ser 0 ou 1')); continue; }
+      if (valTok.value !== '0' && valTok.value !== '1') { errors.push(p.err('the IF value must be 0 or 1')); continue; }
       const value = (valTok.value === '1' ? 1 : 0) as 0 | 1;
-      if (!p.at('RPAREN')) { errors.push(p.err('esperado ")" ao final da condição IF')); continue; }
+      if (!p.at('RPAREN')) { errors.push(p.err('expected ")" to close the IF condition')); continue; }
       p.next();
       if (!everMeasuredBits.has(bit)) {
-        warnings.push({ line: lineNo, col: 0, message: `IF referencia c${bit}, que ainda não foi medido`, severity: 'warning' });
+        warnings.push({ line: lineNo, col: 0, message: `IF references c${bit}, which has not been measured yet`, severity: 'warning' });
       }
       const inner = parseGateCall(p, lineNo, errors, declaredQubits, numQubits, measuredWithoutReset, warnings);
       if (!inner) continue;
@@ -239,15 +239,15 @@ function parseGateCall(
 ): GateInstruction | null {
   const head = p.peek();
   if (head.type !== 'IDENT') {
-    errors.push(p.err(`token inesperado "${head.value}"`));
+    errors.push(p.err(`unexpected token "${head.value}"`));
     return null;
   }
   const upper = head.value.toUpperCase();
   if (!isGateName(upper)) {
     const suggestion = suggestGateName(upper);
     errors.push(p.err(
-      `gate desconhecido "${head.value}"`,
-      suggestion ? `você quis dizer ${suggestion}?` : undefined,
+      `unknown gate "${head.value}"`,
+      suggestion ? `did you mean ${suggestion}?` : undefined,
     ));
     return null;
   }
@@ -255,7 +255,7 @@ function parseGateCall(
   const def = GATE_REGISTRY[gateName];
   p.next();
 
-  if (!p.at('LPAREN')) { errors.push(p.err(`esperado "(" após ${gateName}`)); return null; }
+  if (!p.at('LPAREN')) { errors.push(p.err(`expected "(" after ${gateName}`)); return null; }
   p.next();
 
   const qubits: number[] = [];
@@ -266,11 +266,11 @@ function parseGateCall(
     const qb = parseQubitRef(p);
     if (isErr(qb)) { errors.push(qb); return null; }
     if (declaredQubits && qb >= numQubits) {
-      errors.push({ line: lineNo, col: p.peek().col, message: `qubit q${qb} fora do range declarado (qubits ${numQubits})`, severity: 'error' });
+      errors.push({ line: lineNo, col: p.peek().col, message: `qubit q${qb} is out of the declared range (qubits ${numQubits})`, severity: 'error' });
     }
     qubits.push(qb);
     if (i < def.numQubits - 1 || def.numParams > 0) {
-      if (!p.at('COMMA')) { errors.push(p.err(`esperado "," — ${gateName} espera ${def.numQubits} qubit(s) e ${def.numParams} parâmetro(s)`)); return null; }
+      if (!p.at('COMMA')) { errors.push(p.err(`expected "," — ${gateName} expects ${def.numQubits} qubit(s) and ${def.numParams} parameter(s)`)); return null; }
       p.next();
     }
   }
@@ -280,20 +280,20 @@ function parseGateCall(
     if (isErr(val)) { errors.push(val); return null; }
     params.push(val);
     if (i < def.numParams - 1) {
-      if (!p.at('COMMA')) { errors.push(p.err(`esperado ","`)); return null; }
+      if (!p.at('COMMA')) { errors.push(p.err(`expected ","`)); return null; }
       p.next();
     }
   }
 
   if (!p.at('RPAREN')) {
-    errors.push(p.err(`esperado ")" — aridade incorreta para ${gateName} (espera ${def.numQubits} qubit(s), ${def.numParams} parâmetro(s))`));
+    errors.push(p.err(`expected ")" — wrong arity for ${gateName} (expects ${def.numQubits} qubit(s), ${def.numParams} parameter(s))`));
     return null;
   }
   p.next();
 
   for (const qb of qubits) {
     if (measuredWithoutReset.has(qb)) {
-      warnings.push({ line: lineNo, col: 0, message: `q${qb} usado após MEASURE sem RESET`, severity: 'warning' });
+      warnings.push({ line: lineNo, col: 0, message: `q${qb} used after MEASURE without a RESET`, severity: 'warning' });
     }
   }
 

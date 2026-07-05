@@ -136,13 +136,35 @@ a:hover { text-decoration: underline; }
   color: var(--fg-2);
   text-align: right;
   padding-right: 6px;
+  -webkit-user-select: none;
   user-select: none;
   line-height: 20px;
 }
 .gutter .gutter-line { display: flex; align-items: center; justify-content: flex-end; gap: 4px; height: 20px; cursor: pointer; }
+.gutter .gutter-line:hover { background: var(--bg-2); color: var(--fg-0); }
+.gutter .gutter-line.current { color: var(--acc-exec); }
 .gutter .bp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--acc-meas); flex-shrink: 0; }
 .gutter .bp-dot.empty { background: transparent; }
 .gutter .pc-arrow { color: var(--acc-exec); }
+
+/* hover / current-line highlight overlays, positioned over the textarea to mirror the gutter row */
+.hover-line-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: rgba(230, 230, 230, 0.06);
+  pointer-events: none;
+}
+.current-line-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: rgba(255, 210, 63, 0.1);
+  box-shadow: inset 3px 0 0 var(--acc-exec);
+  pointer-events: none;
+}
 .editor-lines { flex: 1; position: relative; overflow: auto; }
 .code-line {
   height: 20px;

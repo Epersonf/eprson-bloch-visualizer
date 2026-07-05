@@ -42,6 +42,7 @@ export const ContextMenu = observer(function ContextMenu() {
   const qiskitSnippet = instructionToQiskit(instr);
   const cirqSnippet = instructionToCirq(instr);
   const gateForMatrix = instr.kind === 'gate' ? instr : instr.kind === 'cond' ? instr.inner : null;
+  const hasBreakpoint = store.breakpoints.has(instr.line);
 
   function copy(text: string | null) {
     if (text) navigator.clipboard?.writeText(text).catch(() => {});
@@ -56,29 +57,31 @@ export const ContextMenu = observer(function ContextMenu() {
 
   return (
     <div className="context-menu" style={{ left: x, top: y }} ref={ref}>
-      <button onClick={() => setPanel(panel === 'qiskit' ? null : 'qiskit')}>Equivalente em IBM Qiskit</button>
+      <button onClick={() => setPanel(panel === 'qiskit' ? null : 'qiskit')}>Equivalent in IBM Qiskit</button>
       {panel === 'qiskit' && (
         <div className="context-menu-snippet">
-          {qiskitSnippet ?? '(sem equivalente)'}
-          <div><button onClick={() => copy(qiskitSnippet)}>copiar</button></div>
+          {qiskitSnippet ?? '(no equivalent)'}
+          <div><button onClick={() => copy(qiskitSnippet)}>copy</button></div>
         </div>
       )}
-      <button onClick={() => setPanel(panel === 'cirq' ? null : 'cirq')}>Equivalente em Google Cirq</button>
+      <button onClick={() => setPanel(panel === 'cirq' ? null : 'cirq')}>Equivalent in Google Cirq</button>
       {panel === 'cirq' && (
         <div className="context-menu-snippet">
-          {cirqSnippet ?? '(sem equivalente)'}
-          <div><button onClick={() => copy(cirqSnippet)}>copiar</button></div>
+          {cirqSnippet ?? '(no equivalent)'}
+          <div><button onClick={() => copy(cirqSnippet)}>copy</button></div>
         </div>
       )}
       {gateForMatrix && (
         <>
-          <button onClick={() => setPanel(panel === 'matrix' ? null : 'matrix')}>Mostrar matriz</button>
+          <button onClick={() => setPanel(panel === 'matrix' ? null : 'matrix')}>Show matrix</button>
           {panel === 'matrix' && <div className="context-menu-snippet">{matrixText(gateForMatrix.gate, gateForMatrix.params)}</div>}
         </>
       )}
-      <button onClick={() => { store.toggleBreakpoint(instr.line); store.closeContextMenu(); }}>Breakpoint aqui</button>
-      <button onClick={() => { store.runToLine(instr.line); store.closeContextMenu(); }}>Executar até aqui</button>
-      <button onClick={deleteInstruction}>Deletar instrução</button>
+      <button onClick={() => { store.toggleBreakpoint(instr.line); store.closeContextMenu(); }}>
+        {hasBreakpoint ? 'Remove breakpoint' : 'Add breakpoint here'}
+      </button>
+      <button onClick={() => { store.runToLine(instr.line); store.closeContextMenu(); }}>Run to here</button>
+      <button onClick={deleteInstruction}>Delete instruction</button>
     </div>
   );
 });

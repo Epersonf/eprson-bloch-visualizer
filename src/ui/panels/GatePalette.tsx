@@ -30,7 +30,7 @@ export const GatePalette = observer(function GatePalette() {
     <aside className="sidebar">
       <input
         className="search"
-        placeholder="/ buscar gate"
+        placeholder="/ search gate"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
