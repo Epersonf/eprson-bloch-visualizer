@@ -7,7 +7,7 @@ import { AboutPage } from './ui/pages/AboutPage';
 export function App() {
   return (
     <StoreProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <div className="app-root">
           <Header />
           <Routes>
