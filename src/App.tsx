@@ -3,6 +3,7 @@ import { StoreProvider } from './store/StoreContext';
 import { Header } from './ui/panels/Header';
 import { DebuggerPage } from './ui/pages/DebuggerPage';
 import { AboutPage } from './ui/pages/AboutPage';
+import { VersionWatcher } from './ui/panels/VersionWatcher';
 
 export function App() {
   return (
@@ -15,6 +16,7 @@ export function App() {
             <Route path="/about" element={<AboutPage />} />
           </Routes>
         </div>
+        <VersionWatcher />
       </BrowserRouter>
     </StoreProvider>
   );

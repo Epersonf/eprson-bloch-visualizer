@@ -3,6 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- GitHub Pages hard-codes Cache-Control: max-age=600 with no way to override it server-side;
+         these are a best-effort nudge for browsers that honor them. The real fix is VersionWatcher.tsx. -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>EPRson · Bloch Visualizer</title>
     <link rel="icon" type="image/x-icon" href="/assets/logo.png">
   </head>
