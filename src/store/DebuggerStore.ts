@@ -10,6 +10,7 @@ import {
 import { EXAMPLES, getExample } from '../core/examples';
 import { encodeState, decodeState, saveToLocalStorage, loadFromLocalStorage, type SerializedState } from '../core/serialize';
 import type { EquationFormat } from '../core/analysis/formats';
+import { MEASUREMENT_EPS } from '../core/sim/measure';
 
 export type DebuggerStatus = 'IDLE' | 'READY' | 'PAUSED' | 'RUNNING' | 'AWAITING_MEASUREMENT' | 'DONE';
 export type BottomTab = 'STATEVECTOR' | 'ENT_GRAPH' | 'CLASSICAL' | 'LOG';
@@ -161,6 +162,14 @@ export class DebuggerStore {
       } else {
         const idx = countPriorMeasurements(rt, this.cursor);
         outcome = this.measurementMode.fixed[idx] ?? 0;
+        // a FIXED script can't force a branch the state has ~0 amplitude in — that would divide
+        // by a ~0 norm and leave the state unnormalized, corrupting everything derived from it
+        const outcomeProb = outcome ? req.p1 : 1 - req.p1;
+        if (outcomeProb < MEASUREMENT_EPS) {
+          const forced = req.p1 >= MEASUREMENT_EPS ? 1 : 0;
+          this.appendLog(`FIXED script asked for q${instr.qubit} = ${outcome} (p≈0, impossible) — forced ${forced} instead`);
+          outcome = forced;
+        }
       }
       const snap = stepMeasure(cur, instr, outcome);
       snap.rngState = rngState;
@@ -219,6 +228,14 @@ export class DebuggerStore {
     const rt = this.runtimeProgram;
     const instr = rt[this.cursor];
     if (instr.kind !== 'measure') return;
+    // guard against forcing a branch the state has ~0 amplitude in (the UI already disables
+    // this choice, but this keeps chooseOutcome safe regardless of caller) — forcing it would
+    // divide by a ~0 norm and leave the state unnormalized, corrupting everything downstream
+    const outcomeProb = outcome ? this.pending.p1 : 1 - this.pending.p1;
+    if (outcomeProb < MEASUREMENT_EPS) {
+      this.appendLog(`ignored: q${instr.qubit} = ${outcome} has probability ≈0 for this branch`);
+      return;
+    }
     this.history.length = this.cursor + 1;
     const cur = this.history[this.cursor];
     const snap = stepMeasure(cur, instr, outcome);

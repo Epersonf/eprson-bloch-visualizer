@@ -1,5 +1,13 @@
 import type { QState } from './state';
 
+/**
+ * Below this probability, a branch is treated as physically impossible. Forcing a measurement
+ * into an impossible branch (ASK mode choosing an outcome with p~0, or a malformed FIXED script)
+ * would divide by a ~0 norm and leave the state unnormalized — corrupting every derived
+ * quantity from then on. Callers must check this before calling forceMeasure with a chosen outcome.
+ */
+export const MEASUREMENT_EPS = 1e-9;
+
 export function probabilityOf1(s: QState, k: number): number {
   const mask = 1 << k;
   let p1 = 0;

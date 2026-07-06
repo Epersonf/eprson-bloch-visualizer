@@ -1,8 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import { Link } from 'react-router-dom';
 import { useDebuggerStore } from '../../store/StoreContext';
-import { programToQiskit } from '../../core/export/toQiskit';
-import { programToCirq } from '../../core/export/toCirq';
+import { FileMenu } from './FileMenu';
 
 const STATUS_CLASS: Record<string, string> = {
   PAUSED: 'paused',
@@ -64,18 +63,7 @@ export const Header = observer(function Header() {
         {store.current?.lastOutcome && (
           <button onClick={() => store.rerollMeasurement()} title="Re-roll the last measurement (r)">RE-ROLL</button>
         )}
-        <button
-          onClick={() => navigator.clipboard?.writeText(programToQiskit(store.program, store.numQubits, store.numBits)).catch(() => {})}
-          title="Copy the full Qiskit program"
-        >
-          EXPORT QISKIT
-        </button>
-        <button
-          onClick={() => navigator.clipboard?.writeText(programToCirq(store.program, store.numQubits)).catch(() => {})}
-          title="Copy the full Cirq program"
-        >
-          EXPORT CIRQ
-        </button>
+        <FileMenu />
       </div>
 
       <nav>
