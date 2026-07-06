@@ -16,7 +16,14 @@ export type DebuggerStatus = 'IDLE' | 'READY' | 'PAUSED' | 'RUNNING' | 'AWAITING
 export type BottomTab = 'STATEVECTOR' | 'ENT_GRAPH' | 'CLASSICAL' | 'LOG';
 export type EditorTab = 'EDITOR' | 'TIMELINE';
 
-export interface PendingMeasurement { qubit: number; bit: number; p1: number; line: number; }
+export interface PendingMeasurement {
+  qubit: number;
+  bit: number;
+  p1: number;
+  line: number;
+  /** whether the pause was triggered by a single Step or by Run, so resolving it knows whether to resume running */
+  resumeMode: 'step' | 'run';
+}
 export interface ContextMenuState { x: number; y: number; instr: Instruction; }
 
 type StepResult = 'ok' | 'awaiting' | 'done';
@@ -149,16 +156,24 @@ export class DebuggerStore {
 
     if (instr.kind === 'measure') {
       const req = measurementRequest(cur.state, instr);
-      if (this.measurementMode === 'ASK') {
-        this.pending = { qubit: instr.qubit, bit: instr.bit, p1: req.p1, line: instr.line };
+      const deterministic = req.p1 < MEASUREMENT_EPS || req.p1 > 1 - MEASUREMENT_EPS;
+
+      if (this.measurementMode === 'ASK' && !deterministic) {
+        // a real choice exists — pause and let the UI ask. resumeMode defaults to 'step';
+        // continueRun() overrides it to 'run' right after this returns.
+        this.pending = { qubit: instr.qubit, bit: instr.bit, p1: req.p1, line: instr.line, resumeMode: 'step' };
         return 'awaiting';
       }
+
       let outcome: 0 | 1;
       let rngState = cur.rngState;
       if (this.measurementMode === 'SAMPLE') {
         const sampled = sampleOutcome(cur, req.p1);
         outcome = sampled.outcome;
         rngState = sampled.rngState;
+      } else if (this.measurementMode === 'ASK') {
+        // only reached when deterministic — the non-deterministic case already returned above
+        outcome = req.p1 > 0.5 ? 1 : 0;
       } else {
         const idx = countPriorMeasurements(rt, this.cursor);
         outcome = this.measurementMode.fixed[idx] ?? 0;
@@ -188,7 +203,12 @@ export class DebuggerStore {
     if (this.status === 'DONE' || this.status === 'IDLE' || this.status === 'AWAITING_MEASUREMENT') return;
     const rt = this.runtimeProgram;
     const result = this.doStep(rt);
-    this.status = result === 'awaiting' ? 'AWAITING_MEASUREMENT' : result === 'done' ? 'DONE' : 'PAUSED';
+    if (result === 'awaiting') {
+      if (this.pending) this.pending.resumeMode = 'step'; // came from a single Step click
+      this.status = 'AWAITING_MEASUREMENT';
+    } else {
+      this.status = result === 'done' ? 'DONE' : 'PAUSED';
+    }
   }
 
   stepBack(): void {
@@ -210,7 +230,11 @@ export class DebuggerStore {
       if (n > 0 && this.breakpoints.has(nextLine)) { this.status = 'PAUSED'; return; }
       const result = this.doStep(rt);
       n++;
-      if (result === 'awaiting') { this.status = 'AWAITING_MEASUREMENT'; return; }
+      if (result === 'awaiting') {
+        if (this.pending) this.pending.resumeMode = 'run'; // came from Run — resolving it should resume running
+        this.status = 'AWAITING_MEASUREMENT';
+        return;
+      }
       if (result === 'done') { this.status = 'DONE'; return; }
     }
     this.status = 'PAUSED';
@@ -236,6 +260,7 @@ export class DebuggerStore {
       this.appendLog(`ignored: q${instr.qubit} = ${outcome} has probability ≈0 for this branch`);
       return;
     }
+    const resumeMode = this.pending.resumeMode;
     this.history.length = this.cursor + 1;
     const cur = this.history[this.cursor];
     const snap = stepMeasure(cur, instr, outcome);
@@ -243,7 +268,36 @@ export class DebuggerStore {
     this.cursor++;
     this.appendLog(`MEASURE (ASK) q${instr.qubit} -> c${instr.bit} = ${outcome}`);
     this.pending = null;
-    this.status = this.cursor >= rt.length ? 'DONE' : 'PAUSED';
+    this.resumeAfterChoice(rt, resumeMode);
+  }
+
+  /** Lets the user say "just sample it" instead of forcing a specific branch for this one measurement. */
+  chooseRandomOutcome(): void {
+    if (this.status !== 'AWAITING_MEASUREMENT' || !this.pending) return;
+    const rt = this.runtimeProgram;
+    const instr = rt[this.cursor];
+    if (instr.kind !== 'measure') return;
+    const resumeMode = this.pending.resumeMode;
+    const cur = this.history[this.cursor];
+    const sampled = sampleOutcome(cur, this.pending.p1);
+    this.history.length = this.cursor + 1;
+    const snap = stepMeasure(cur, instr, sampled.outcome);
+    snap.rngState = sampled.rngState;
+    this.history.push(snap);
+    this.cursor++;
+    this.appendLog(`MEASURE (ASK, random) q${instr.qubit} -> c${instr.bit} = ${sampled.outcome}`);
+    this.pending = null;
+    this.resumeAfterChoice(rt, resumeMode);
+  }
+
+  /** After resolving an ASK-mode pause: a Step-triggered pause stops here; a Run-triggered one keeps running. */
+  private resumeAfterChoice(rt: Instruction[], resumeMode: 'step' | 'run'): void {
+    if (this.cursor >= rt.length) { this.status = 'DONE'; return; }
+    if (resumeMode === 'run') {
+      this.continueRun();
+    } else {
+      this.status = 'PAUSED';
+    }
   }
 
   rerollMeasurement(): void {

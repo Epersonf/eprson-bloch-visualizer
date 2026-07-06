@@ -33,6 +33,9 @@ export const MeasurementPrompt = observer(function MeasurementPrompt() {
       >
         [1] p={p1.toFixed(3)}
       </button>
+      <button onClick={() => store.chooseRandomOutcome()} title="Sample this measurement randomly, weighted by its probabilities">
+        🎲 Random
+      </button>
     </div>
   );
 });
